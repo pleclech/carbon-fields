@@ -67,3 +67,5 @@ jobs:
 
       - name: Push new branch
         run: git push origin release/${{ steps.git-describe.outputs.raw-version }}
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
