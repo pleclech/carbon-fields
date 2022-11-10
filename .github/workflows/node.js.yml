@@ -67,6 +67,6 @@ jobs:
 
       - name: Push new branch
         env:
-          GITHUB_TOKEN: ${{ secrets.WF_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           git push origin release/${{ steps.git-describe.outputs.raw-version }}
