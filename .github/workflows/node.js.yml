@@ -57,12 +57,10 @@ jobs:
       - name: push release branch
         id: make-commit
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WF_TOKEN }}
         run: |
           git config user.name "GitHub Actions"
           git config user.email noreply@github.com
-
-          git remote add gh-token "https://${{ secrets.GITHUB_TOKEN}}@github.com/pleclech/carbon-fields.git"
 
           git checkout -b release/${{ steps.git-describe.outputs.raw-version }}
 
