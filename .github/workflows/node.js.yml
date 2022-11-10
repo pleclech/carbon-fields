@@ -5,9 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: ["release"]
-  pull_request:
-    branches: ["release"]
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   build:
@@ -16,14 +16,35 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-
+      - name: Git Describe
+        id: git-describe
+        run: |
+          # The actions/checkout action tries hard to fetch as little as
+          # possible, to the extent that even with "depth: 0" it fails to
+          # produce enough tag metadata for us to "describe" successfully.
+          # We'll therefore re-fetch the tags here to make sure we will
+          # select the most accurate version number.
+          git fetch origin --force --tags --quiet --unshallow
+          git log --tags --simplify-by-decoration --decorate-refs='refs/tags/v*' --pretty=format:'%h %<|(35)%S %ci' --max-count 15 --topo-order
+          set -e
+          RAW_VERSION=$(git describe --tags --match='v*' ${GITHUB_SHA})
+          echo "
 
-      - name: Use Node.js ${{ matrix.node-version }}
+          Raw version is ${RAW_VERSION}"
+          echo "::set-output name=raw-version::${RAW_VERSION}"
+
+      - name: Change config.php version
+        shell: bash
+        env:
+          RAW_VERSION: ${{ steps.git-describe.outputs.raw-version }}
+        run: |
+          VERSION="${RAW_VERSION#v}"
+          sed "s/'\\\\VERSION',.+/'\\\\VERSION', '${VERSION}');/g" config.php
+
+      - name: Create release branch
+        run: git checkout -b release/${{ steps.git-describe.outputs.raw-version }}
+
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 12.x
@@ -31,3 +52,13 @@ jobs:
 
       - run: yarn --prefer-offline
       - run: npm run build --if-present
+
+      - name: Commit changelog and manifest files
+        id: make-commit
+        run: |
+          git add .
+          git commit --message "Prepare release ${{ steps.git-describe.outputs.raw-version }}"
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+
+      - name: Push new branch
+        run: git push origin release/${{ steps.git-describe.outputs.raw-version }}
