@@ -62,6 +62,8 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email noreply@github.com
 
+          git remote add gh-token "https://${{ secrets.GITHUB_TOKEN}}@github.com/pleclech/carbon-fields.git"
+
           git checkout -b release/${{ steps.git-describe.outputs.raw-version }}
 
           git add .
