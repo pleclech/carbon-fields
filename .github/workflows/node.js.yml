@@ -45,14 +45,6 @@ jobs:
           VERSION="${RAW_VERSION#v}"
           sed "s/'\\\\VERSION',.+/'\\\\VERSION', '${VERSION}');/g" config.php
 
-      - name: Create release branch
-        run: git checkout -b release/${{ steps.git-describe.outputs.raw-version }}
-
-      - name: Initialize mandatory git config
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email noreply@github.com
-
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
@@ -62,15 +54,19 @@ jobs:
       - run: yarn --prefer-offline
       - run: npm run build --if-present
 
-      - name: Commit changelog and manifest files
+      - name: push release branch
         id: make-commit
-        run: |
-          git add .
-          git commit --message "Prepare release ${{ steps.git-describe.outputs.raw-version }}"
-          echo "::set-output name=commit::$(git rev-parse HEAD)"
-
-      - name: Push new branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push origin release/${{ steps.git-describe.outputs.raw-version }}
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
+
+          git checkout -b release/${{ steps.git-describe.outputs.raw-version }}
+
+          git add .
+          git commit --message "Prepare release ${{ steps.git-describe.outputs.raw-version }}"
+
+          git push origin +release/${{ steps.git-describe.outputs.raw-version }}
+
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
