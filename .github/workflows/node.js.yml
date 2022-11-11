@@ -41,7 +41,7 @@ jobs:
           RAW_VERSION: ${{ steps.git-describe.outputs.raw-version }}
         run: |
           VERSION="${RAW_VERSION#v}"
-          sed "s/'\\\\VERSION',.+/'\\\\VERSION', '${VERSION}');/g" config.php
+          sed -i "s/'\\\\VERSION',.+/'\\\\VERSION', '${VERSION}');/g" config.php
 
       - name: Use Node.js
         uses: actions/setup-node@v3
