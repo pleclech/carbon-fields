@@ -11,14 +11,12 @@ on:
 
 jobs:
   build:
-    permissions:
-      contents: write # to create release commit (google-github-actions/release-please-action)
-      pull-requests: write # to create release PR (google-github-actions/release-please-action)
-
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.WF_TOKEN }}
 
       - name: Git Describe
         id: git-describe
@@ -51,22 +49,16 @@ jobs:
           node-version: 12.x
           cache: "yarn"
 
-      - run: yarn --prefer-offline
-      - run: npm run build --if-present
+      - run: |
+        yarn --prefer-offline
+        npm run build --if-present
+        
+        git config user.name "GitHub Actions"
+        git config user.email noreply@github.com
 
-      - name: push release branch
-        id: make-commit
-        env:
-          GITHUB_TOKEN: ${{ secrets.WF_TOKEN }}
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email noreply@github.com
+        git checkout -b release/${{ steps.git-describe.outputs.raw-version }}
 
-          git checkout -b release/${{ steps.git-describe.outputs.raw-version }}
+        git add .
+        git commit --message "Prepare release ${{ steps.git-describe.outputs.raw-version }}"
 
-          git add .
-          git commit --message "Prepare release ${{ steps.git-describe.outputs.raw-version }}"
-
-          git push origin +release/${{ steps.git-describe.outputs.raw-version }}
-
-          echo "::set-output name=commit::$(git rev-parse HEAD)"
+        git push origin +release/${{ steps.git-describe.outputs.raw-version }}
