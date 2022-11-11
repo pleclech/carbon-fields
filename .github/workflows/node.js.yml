@@ -50,15 +50,15 @@ jobs:
           cache: "yarn"
 
       - run: |
-        yarn --prefer-offline
-        npm run build --if-present
-        
-        git config user.name "GitHub Actions"
-        git config user.email noreply@github.com
+          yarn --prefer-offline
+          npm run build --if-present
 
-        git checkout -b release/${{ steps.git-describe.outputs.raw-version }}
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
 
-        git add .
-        git commit --message "Prepare release ${{ steps.git-describe.outputs.raw-version }}"
+          git checkout -b release/${{ steps.git-describe.outputs.raw-version }}
 
-        git push origin +release/${{ steps.git-describe.outputs.raw-version }}
+          git add .
+          git commit --message "Prepare release ${{ steps.git-describe.outputs.raw-version }}"
+
+          git push origin +release/${{ steps.git-describe.outputs.raw-version }}
