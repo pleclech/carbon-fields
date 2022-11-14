@@ -1,27 +1,23 @@
 /**
  * External dependencies.
  */
-import produce from 'immer';
-import startWith from 'callbag-start-with';
-import fromDelegatedEvent from 'callbag-from-delegated-event';
-import {
-	merge,
-	pipe,
-	scan,
-	map,
-	filter,
-	fromEvent
-} from 'callbag-basics';
-import { addFilter } from '@wordpress/hooks';
-import { select } from '@wordpress/data';
-import { pull, fromPairs } from 'lodash';
+import produce from "immer";
+import startWith from "callbag-start-with";
+import fromDelegatedEvent from "callbag-from-delegated-event";
+import { merge, pipe, scan, map, filter } from "callbag-basics";
+
+import fromEvent from "callbag-from-event";
+
+import { addFilter } from "@wordpress/hooks";
+import { select } from "@wordpress/data";
+import { pull, fromPairs } from "lodash";
 
 /**
  * Carbon Fields dependencies.
  */
-import { fromSelector } from '@carbon-fields/core';
+import { fromSelector } from "@carbon-fields/core";
 
-const TAGS_DELIMITER = ',';
+const TAGS_DELIMITER = ",";
 
 /**
  * Applies a monkey patch to the specified method of `window.tagBox` API
@@ -31,27 +27,28 @@ const TAGS_DELIMITER = ',';
  * @param  {string} method
  * @return {void}
  */
-function patchWordPressTagBoxAPI( tagBox, method ) {
-	tagBox[ `original_${ method }` ] = tagBox[ method ];
+function patchWordPressTagBoxAPI(tagBox, method) {
+	tagBox[`original_${method}`] = tagBox[method];
 
-	tagBox[ method ] = function( ...args ) {
-		const event = new Event( 'change' );
-		const textarea = window.jQuery( args[ 0 ] )
-			.closest( '.postbox' )
-			.find( 'textarea.the-tags' )
-			.get( 0 );
+	tagBox[method] = function (...args) {
+		const event = new Event("change");
+		const textarea = window
+			.jQuery(args[0])
+			.closest(".postbox")
+			.find("textarea.the-tags")
+			.get(0);
 
-		const result = tagBox[ `original_${ method }` ]( ...args );
+		const result = tagBox[`original_${method}`](...args);
 
-		textarea.dispatchEvent( event );
+		textarea.dispatchEvent(event);
 
 		return result;
 	};
 }
 
-if ( window.tagBox ) {
-	patchWordPressTagBoxAPI( window.tagBox, 'parseTags' );
-	patchWordPressTagBoxAPI( window.tagBox, 'flushTags' );
+if (window.tagBox) {
+	patchWordPressTagBoxAPI(window.tagBox, "parseTags");
+	patchWordPressTagBoxAPI(window.tagBox, "flushTags");
 }
 
 /**
@@ -60,18 +57,23 @@ if ( window.tagBox ) {
  * @param  {string} taxonomy
  * @return {Object}
  */
-function getTermsFromChecklist( taxonomy ) {
-	const inputs = document.querySelectorAll( `#${ taxonomy }checklist input[type="checkbox"]:checked` );
+function getTermsFromChecklist(taxonomy) {
+	const inputs = document.querySelectorAll(
+		`#${taxonomy}checklist input[type="checkbox"]:checked`
+	);
 
-	return [ ...inputs ].reduce( ( memo, input ) => {
-		const value = parseInt( input.value, 10 );
+	return [...inputs].reduce(
+		(memo, input) => {
+			const value = parseInt(input.value, 10);
 
-		memo[ taxonomy ].push( value );
+			memo[taxonomy].push(value);
 
-		return memo;
-	}, {
-		[ taxonomy ]: []
-	} );
+			return memo;
+		},
+		{
+			[taxonomy]: [],
+		}
+	);
 }
 
 /**
@@ -80,14 +82,14 @@ function getTermsFromChecklist( taxonomy ) {
  * @param  {string} taxonomy
  * @return {Object}
  */
-function getTermsFromText( taxonomy ) {
-	const node = document.querySelector( `#tagsdiv-${ taxonomy } textarea.the-tags` );
-	const terms = node.value
-		? node.value.split( TAGS_DELIMITER )
-		: [];
+function getTermsFromText(taxonomy) {
+	const node = document.querySelector(
+		`#tagsdiv-${taxonomy} textarea.the-tags`
+	);
+	const terms = node.value ? node.value.split(TAGS_DELIMITER) : [];
 
 	return {
-		[ taxonomy ]: terms
+		[taxonomy]: terms,
 	};
 }
 
@@ -97,29 +99,36 @@ function getTermsFromText( taxonomy ) {
  * @return {Function}
  */
 function trackHierarchicalTaxonomies() {
-	const nodes = document.querySelectorAll( 'div[id^="taxonomy-"]' );
+	const nodes = document.querySelectorAll('div[id^="taxonomy-"]');
 
-	return [ ...nodes ].map( ( node ) => {
-		const taxonomy = node.id.replace( 'taxonomy-', '' );
+	return [...nodes].map((node) => {
+		const taxonomy = node.id.replace("taxonomy-", "");
 
 		return pipe(
-			fromDelegatedEvent( node.querySelector( `#${ taxonomy }checklist` ), 'input[type="checkbox"]', 'change' ),
-			scan( ( stack, { target } ) => {
-				return produce( stack, ( draft ) => {
-					const value = parseInt( target.value, 10 );
+			fromDelegatedEvent(
+				node.querySelector(`#${taxonomy}checklist`),
+				'input[type="checkbox"]',
+				"change"
+			),
+			scan(
+				(stack, { target }) => {
+					return produce(stack, (draft) => {
+						const value = parseInt(target.value, 10);
 
-					if ( target.checked ) {
-						draft[ taxonomy ].push( value );
-					} else {
-						pull( draft[ taxonomy ], value );
-					}
-				} );
-			}, {
-				[ taxonomy ]: []
-			} ),
-			startWith( getTermsFromChecklist( taxonomy ) )
+						if (target.checked) {
+							draft[taxonomy].push(value);
+						} else {
+							pull(draft[taxonomy], value);
+						}
+					});
+				},
+				{
+					[taxonomy]: [],
+				}
+			),
+			startWith(getTermsFromChecklist(taxonomy))
 		);
-	} );
+	});
 }
 
 /**
@@ -128,65 +137,76 @@ function trackHierarchicalTaxonomies() {
  * @return {Function}
  */
 function trackNonHierarchicalTaxonomies() {
-	const nodes = document.querySelectorAll( 'div[id^="tagsdiv-"]' );
+	const nodes = document.querySelectorAll('div[id^="tagsdiv-"]');
 
-	return [ ...nodes ].map( ( node ) => {
-		const taxonomy = node.id.replace( 'tagsdiv-', '' );
+	return [...nodes].map((node) => {
+		const taxonomy = node.id.replace("tagsdiv-", "");
 
 		return pipe(
-			fromEvent( node.querySelector( 'textarea.the-tags' ), 'change' ),
-			map( ( { target } ) => ( {
-				[ taxonomy ]: target.value
-					? target.value.split( TAGS_DELIMITER )
-					: []
-			} ) ),
-			startWith( getTermsFromText( taxonomy ) )
+			fromEvent(node.querySelector("textarea.the-tags"), "change"),
+			map(({ target }) => ({
+				[taxonomy]: target.value
+					? target.value.split(TAGS_DELIMITER)
+					: [],
+			})),
+			startWith(getTermsFromText(taxonomy))
 		);
-	} );
+	});
 }
 
 /**
  * Defines the side effects for Classic Editor.
  */
-addFilter( 'carbon-fields.conditional-display-post-term.classic', 'carbon-fields/metaboxes', () => {
-	return pipe(
-		merge(
-			...trackHierarchicalTaxonomies(),
-			...trackNonHierarchicalTaxonomies()
-		),
-		scan( ( previous, current ) => {
-			return {
-				post_term: {
-					...previous.post_term,
-					...current
+addFilter(
+	"carbon-fields.conditional-display-post-term.classic",
+	"carbon-fields/metaboxes",
+	() => {
+		return pipe(
+			merge(
+				...trackHierarchicalTaxonomies(),
+				...trackNonHierarchicalTaxonomies()
+			),
+			scan(
+				(previous, current) => {
+					return {
+						post_term: {
+							...previous.post_term,
+							...current,
+						},
+					};
+				},
+				{
+					post_term: {},
 				}
-			};
-		}, {
-			post_term: {}
-		} )
-	);
-} );
+			)
+		);
+	}
+);
 
 /**
  * Defines the side effects for Gutenberg.
  */
-addFilter( 'carbon-fields.conditional-display-post-term.gutenberg', 'carbon-fields/metaboxes', () => {
-	const { getTaxonomies } = select( 'core' );
-	const { getEditedPostAttribute } = select( 'core/editor' );
+addFilter(
+	"carbon-fields.conditional-display-post-term.gutenberg",
+	"carbon-fields/metaboxes",
+	() => {
+		const { getTaxonomies } = select("core");
+		const { getEditedPostAttribute } = select("core/editor");
 
-	// Borrowed from https://github.com/WordPress/gutenberg/blob/master/packages/editor/src/components/post-taxonomies/index.js
-	return pipe(
-		fromSelector( getTaxonomies, { per_page: -1 } ),
-		filter( Boolean ),
-		map( ( taxonomies ) => {
-			const pairs = taxonomies.map( ( taxonomy ) => ( [
-				taxonomy.slug,
-				getEditedPostAttribute( taxonomy.rest_base ) || []
-			] ) );
+		// Borrowed from https://github.com/WordPress/gutenberg/blob/master/packages/editor/src/components/post-taxonomies/index.js
+		return pipe(
+			fromSelector(getTaxonomies, { per_page: -1 }),
+			filter(Boolean),
+			map((taxonomies) => {
+				const pairs = taxonomies.map((taxonomy) => [
+					taxonomy.slug,
+					getEditedPostAttribute(taxonomy.rest_base) || [],
+				]);
 
-			return {
-				post_term: fromPairs( pairs )
-			};
-		} )
-	);
-} );
+				return {
+					post_term: fromPairs(pairs),
+				};
+			})
+		);
+	}
+);
