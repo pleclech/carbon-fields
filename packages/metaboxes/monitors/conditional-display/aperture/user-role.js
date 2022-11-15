@@ -4,9 +4,7 @@
 import of from "callbag-of";
 import startWith from "callbag-start-with";
 import { addFilter } from "@wordpress/hooks";
-import { pipe, map } from "callbag-basics";
-
-import fromEvent from "callbag-from-event";
+import { fromEvent, pipe, map } from "callbag-basics";
 
 /**
  * The default state.

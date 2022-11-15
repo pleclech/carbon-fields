@@ -4,9 +4,7 @@
 import produce from "immer";
 import startWith from "callbag-start-with";
 import fromDelegatedEvent from "callbag-from-delegated-event";
-import { merge, pipe, scan, map, filter } from "callbag-basics";
-
-import fromEvent from "callbag-from-event";
+import { fromEvent, merge, pipe, scan, map, filter } from "callbag-basics";
 
 import { addFilter } from "@wordpress/hooks";
 import { select } from "@wordpress/data";

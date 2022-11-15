@@ -7,9 +7,7 @@ import distinctUntilChanged from "callbag-distinct-until-changed";
 import { addFilter } from "@wordpress/hooks";
 import { select } from "@wordpress/data";
 import { get, find, isEqual } from "lodash";
-import { pipe, map, combine } from "callbag-basics";
-
-import fromEvent from "callbag-from-event";
+import { fromEvent, pipe, map, combine } from "callbag-basics";
 
 /**
  * Carbon Fields dependencies.
