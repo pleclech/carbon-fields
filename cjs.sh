@@ -1,0 +1,1 @@
+grep -r -e '"module"' node_modules --include=package.json | grep callbag | cut -d':' -f1 |  xargs sed -i '/"module"/d' | true

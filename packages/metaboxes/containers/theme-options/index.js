@@ -5,6 +5,8 @@ import { addFilter } from "@wordpress/hooks";
 import { withEffects } from "refract-callbag";
 import { fromEvent, map, pipe } from "callbag-basics";
 
+// import fromEvent from "callbag-from-event";
+
 /**
  * Internal dependencies.
  */
