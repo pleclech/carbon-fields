@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import create from 'callbag-create';
+import create from "callbag-create";
 
 /**
  * Callbag source factory from `addHandler` and `removeHandler` pair.
@@ -12,12 +12,16 @@ import create from 'callbag-create';
  * @param  {Function} argsTransformer
  * @return {Function}
  */
-export default function fromEventPattern( addHandler, removeHandler, argsTransformer = ( ...args ) => args ) {
-	return create( ( sink ) => {
-		const handler = ( ...args ) => sink( 1, argsTransformer( ...args ) );
+export default function fromEventPattern(
+	addHandler,
+	removeHandler,
+	argsTransformer = (...args) => args[0]
+) {
+	return create((sink) => {
+		const handler = (...args) => sink(argsTransformer(...args));
 
-		addHandler( handler );
+		addHandler(handler);
 
-		return () => removeHandler( handler );
-	} );
+		return () => removeHandler(handler);
+	});
 }
