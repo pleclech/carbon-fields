@@ -30,5 +30,3 @@ composer.lock
 # Bundled assets
 /assets/dist/
 carbon-fields.zip
-
-build
