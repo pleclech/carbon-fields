@@ -34,7 +34,7 @@ class RichTextField extends Component {
 			this.timer = setTimeout( this.initEditor, 250 );
 
 			this.cancelObserver = observe( this.node.current, debounce( () => {
-				if ( this.editor ) {
+				if ( this.editor && this.editor.getBody()) {
 					/**
 					 * On each call of the `wpAutoResize` method the global `wpActiveEditor` reference
 					 * is changed to the element that will be resized. In some cases this is causing

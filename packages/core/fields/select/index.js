@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import { Component } from '@wordpress/element';
+import {useEffect, Component } from '@wordpress/element';
 import { get } from 'lodash';
 
 /**
@@ -23,6 +23,21 @@ export class SelectField extends Component {
 		onChange( id, e.target.value );
 	}
 
+	componentDidMount() {
+	
+	const {
+		id,
+		field,
+		onChange
+	} = this.props;
+
+		const value = this.props.value || get( field.options, '[0].value', '' );
+
+	// useEffect(() => {
+		onChange( id, value );
+	// }, [id, value]);
+	}
+
 	/**
 	 * Renders the component.
 	 *
@@ -33,12 +48,12 @@ export class SelectField extends Component {
 			id,
 			name,
 			field,
-			onChange
+			// onChange
 		} = this.props;
 
 		const value = this.props.value || get( field.options, '[0].value', '' );
 
-		onChange( id, value );
+			// onChange( id, value );
 
 		return (
 			field.options.length > 0

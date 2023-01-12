@@ -31,9 +31,9 @@ export default function withConditionalLogic(input, output) {
 	 * @return {Object}
 	 */
 	function aperture(component, props) {
-		//		if ( isEmpty( props.field.conditional_logic ) ) {
-		//			return;
-		//		}
+		if ( isEmpty( props.field.conditional_logic ) ) {
+			return;
+		}
 
 		return input(props, component);
 	}
