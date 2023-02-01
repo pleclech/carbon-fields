@@ -69,7 +69,7 @@
     "@wordpress/data": "^8.1.0",
     "@wordpress/date": "^4.24.0",
     "@wordpress/editor": "^13.1.0",
-    "@wordpress/element": "^5.1.0",
+    "@wordpress/element": "^4.20.0",
     "@wordpress/hooks": "^3.24.0",
     "@wordpress/i18n": "^4.24.0",
     "@wordpress/is-shallow-equal": "^4.24.0",
